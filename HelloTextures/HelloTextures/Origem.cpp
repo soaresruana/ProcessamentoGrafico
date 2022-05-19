@@ -345,6 +345,18 @@ int loadTexture(string path)
 
 	if (data)
 	{
+
+		int bufferSize = width * height * nrChannels;
+
+		for (int i = 0; i < bufferSize; i += nrChannels) {
+			//Verifica os indices na cor vermelha e troca para verde
+			if (data[i] == 216) {
+				data[i] = 0;        //R
+				data[i + 1] = 216; // G
+				data[i + 2] = 0;  //  B
+			}
+		}
+
 		if (nrChannels == 3) //jpg, bmp
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
