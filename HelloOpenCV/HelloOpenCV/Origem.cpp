@@ -16,7 +16,7 @@ int main()
 
     //Cria as estruturas do OpenCV, mat 4.
     Mat imgOriginal;
-    Mat imgCinza, imgBlur, imgCanny, imgBlurCanny, imgDilate, imgEgrode;
+    Mat imgCinza, imgBlur, imgCanny, imgBlurCanny, imgDilate, imgErode;
     Mat imgCrop, imgReSize, imgScale;
 
     //chama a função para ler a imagem
@@ -96,32 +96,79 @@ int main()
 
     addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad);
     
-    
+    /*
+    Equalizador de imagens, serve para equalizar as regiões dos pixels.
 
+    */
+
+    Mat imgEqual;
+    equalizeHist(imgCinza, imgEqual);
+
+
+    /*
+    
+    Filtro de Dilatação, busca uma forma de morfologia da estruturação que retorna uma mascara (kernel)
+    A dilatação aumenta as bordas, e a erosão diminuiu. 
+
+    */
+
+    Mat kernel = getStructuringElement(MORPH_RECT, Size(5,5));
+    dilate(imgBlurCanny, imgDilate, kernel);
+
+    erode(imgDilate, imgErode, kernel);
+
+    /*
+    * 
+    Função de recorte, pegar areas existentes na imagem.
+
+    */
+
+    // criando um retangulo nessas posições de pixel.
+    Rect areaCrop(100, 100, 200, 200);
+    
+    // a partir do ponto 100x100 recorto 200 x 200, novaIMG img Base area do crop.
+
+    imgCrop = imgOriginal(areaCrop);
 
 
 
                 //CHAMADA DAS IMAGENS.
     
     //chama a função para mostrar a imagem original
-    //imshow("Pikachu Original",imgOriginal);
+    imshow("Pikachu Original",imgOriginal);
 
     // chama a imagem que recebeu aplicação da função cvtColor.
     imshow("Pikachu GRAYSCALE", imgCinza);
 
-    // chama a imagem que recebeu aplicação da função Resize.
+    // chama a imagem que recebeu aplicação da função RESIZE.
     imshow("Pikachu SCALE", imgScale);
 
-    // chama a imagem que recebeu aplicação da função GaussianBlur (Embassado).
+    // chama a imagem que recebeu aplicação da função GaussianBlur (EMBASSADO).
     imshow("Pikachu Embassado", imgBlur);
 
-    // chama a imagem que recebeu aplicação da função GaussianBlur (Embassado).
+    // chama a imagem que recebeu aplicação da função BORDA 1
     imshow("Pikachu CANNY", imgCanny);
-    // chama a imagem que recebeu aplicação da função GaussianBlur (Embassado).
+    // chama a imagem que recebeu aplicação da função BORDA 2.
     imshow("Pikachu BLUR CANNY", imgBlurCanny);
 
     // chama a imagem que recebeu aplicação da função SOBEL
     imshow("Pikachu SOBEL", grad);
+
+    // chama a imagem que recebeu aplicação da função EQUALIZADOR
+    imshow("Pikachu EQUALIZADA", imgEqual);
+
+    // chama a imagem que recebeu aplicação da função BLUR-KERNEL
+    imshow("Pikachu BLUR KERNEL", imgBlurCanny);
+
+    // chama a imagem que recebeu aplicação da função ERODIDO
+    imshow("Pikachu ERODIDO", imgErode);
+
+    // chama a imagem que recebeu aplicação da função DILATADA
+    imshow("Pikachu DILATADO", imgDilate);
+
+
+    // chama a imagem que recebeu aplicação da função de CORTE
+    imshow("Pikachu RECORTE", imgCrop);
 
 
     
