@@ -209,7 +209,7 @@ int main()
         return -1;
     }
 
-    // Criando uma janela    
+    // Criando mais de uma janela    
     namedWindow("Minha Window", 1);
     namedWindow("Minha Window 2", 2);
 
