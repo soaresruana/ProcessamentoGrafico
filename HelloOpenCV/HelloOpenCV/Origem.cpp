@@ -4,6 +4,8 @@
 #include "opencv2/videoio.hpp"
 #include <iostream>
 
+#include <windows.h>
+
 using namespace cv;
 using namespace std;
 
@@ -131,47 +133,65 @@ int main()
     imgCrop = imgOriginal(areaCrop);
 
 
+    /*
+    Função para escrever na imagem
+
+    DrawText, putText();
+
+    */
+
+    Mat img = imread("pikachu.jpg");
+    drawText(img);
+
 
                 //CHAMADA DAS IMAGENS.
     
-    //chama a função para mostrar a imagem original
-    imshow("Pikachu Original",imgOriginal);
+    ////chama a função para mostrar a imagem original
+    //imshow("Pikachu Original",imgOriginal);
 
-    // chama a imagem que recebeu aplicação da função cvtColor.
-    imshow("Pikachu GRAYSCALE", imgCinza);
+    //// chama a imagem que recebeu aplicação da função cvtColor.
+    //imshow("Pikachu GRAYSCALE", imgCinza);
 
-    // chama a imagem que recebeu aplicação da função RESIZE.
-    imshow("Pikachu SCALE", imgScale);
+    //// chama a imagem que recebeu aplicação da função RESIZE.
+    //imshow("Pikachu SCALE", imgScale);
 
-    // chama a imagem que recebeu aplicação da função GaussianBlur (EMBASSADO).
-    imshow("Pikachu Embassado", imgBlur);
+    //// chama a imagem que recebeu aplicação da função GaussianBlur (EMBASSADO).
+    //imshow("Pikachu Embassado", imgBlur);
 
-    // chama a imagem que recebeu aplicação da função BORDA 1
-    imshow("Pikachu CANNY", imgCanny);
-    // chama a imagem que recebeu aplicação da função BORDA 2.
-    imshow("Pikachu BLUR CANNY", imgBlurCanny);
+    //// chama a imagem que recebeu aplicação da função BORDA 1
+    //imshow("Pikachu CANNY", imgCanny);
+    //// chama a imagem que recebeu aplicação da função BORDA 2.
+    //imshow("Pikachu BLUR CANNY", imgBlurCanny);
 
-    // chama a imagem que recebeu aplicação da função SOBEL
-    imshow("Pikachu SOBEL", grad);
+    //// chama a imagem que recebeu aplicação da função SOBEL
+    //imshow("Pikachu SOBEL", grad);
 
-    // chama a imagem que recebeu aplicação da função EQUALIZADOR
-    imshow("Pikachu EQUALIZADA", imgEqual);
+    //// chama a imagem que recebeu aplicação da função EQUALIZADOR
+    //imshow("Pikachu EQUALIZADA", imgEqual);
 
-    // chama a imagem que recebeu aplicação da função BLUR-KERNEL
-    imshow("Pikachu BLUR KERNEL", imgBlurCanny);
+    //// chama a imagem que recebeu aplicação da função BLUR-KERNEL
+    //imshow("Pikachu BLUR KERNEL", imgBlurCanny);
 
-    // chama a imagem que recebeu aplicação da função ERODIDO
-    imshow("Pikachu ERODIDO", imgErode);
+    //// chama a imagem que recebeu aplicação da função ERODIDO
+    //imshow("Pikachu ERODIDO", imgErode);
 
-    // chama a imagem que recebeu aplicação da função DILATADA
-    imshow("Pikachu DILATADO", imgDilate);
-
-
-    // chama a imagem que recebeu aplicação da função de CORTE
-    imshow("Pikachu RECORTE", imgCrop);
+    //// chama a imagem que recebeu aplicação da função DILATADA
+    //imshow("Pikachu DILATADO", imgDilate);
 
 
-    
+    //// chama a imagem que recebeu aplicação da função de CORTE
+    //imshow("Pikachu RECORTE", imgCrop);
+
+
+    // Chama a imagem com aplicação de texto
+    imshow("ESTE É UM PIKACHU", img);
+
+        
+
+   
+
+
+
 
     //chama a função para esperar o usuario apertar uma tecla, para não fechar antes.
     waitKey(0);
@@ -211,14 +231,28 @@ int main()
         waitKey(0);
     }*/
 
+
+
+    
+
+
     return 0;
 }
 
+
+
+/*
+    Função Draw Text , escreve na imagem.
+*/
 void drawText(Mat& image)
 {
-    putText(image, "Hello OpenCV",
+
+    putText(image, "ESTE E UM PIKACHU",
         Point(20, 50),
         FONT_HERSHEY_COMPLEX, 1, // font face and scale
-        Scalar(255, 255, 255), // white
+        Scalar(0, 0, 0), // white 255 255 255 black 0 0 0 
         1, LINE_AA); // line thickness and type
 }
+
+// botão
+
