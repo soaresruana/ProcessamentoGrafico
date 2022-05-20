@@ -22,7 +22,7 @@ int main()
     Mat imgCrop, imgReSize, imgScale;
 
     //chama a função para ler a imagem
-    imgOriginal = imread("person.jpg");
+    imgOriginal = imread("pikachu.jpg");
 
     /*
    Função Resize.
@@ -31,7 +31,7 @@ int main()
    Terceiro as dimensões.
    */
 
-    resize(imgOriginal, imgScale, Size(), 0.5, 0.5); // 0.4 0.4
+    resize(imgOriginal, imgScale, Size(), 1.0, 1.0); // 0.4 0.4
 
     /*
 
@@ -183,13 +183,68 @@ int main()
     //imshow("Pikachu RECORTE", imgCrop);
 
 
-    // Chama a imagem com aplicação de texto
-    imshow("ESTE É UM PIKACHU", img);
+    //// Chama a imagem com aplicação de texto
+    //imshow("ESTE É UM PIKACHU", img);
+
+    /*
+    
+    Função que adiciona filtros em barras
+    
+    
+    */
+    // Leitura da imagem original
+    Mat src = imread("pikachu.jpg");
+    Mat dois = imread("pikachu.jpg");
+    Mat uniao;
+
+    /*União de duas imagens na mesma janela.*/
+    cv::hconcat(src, dois, uniao);
+
+    
+
+    //Verifica se não tem erros ao ler a imagem
+    if (!src.data)
+    {
+        cout << "Erro ao carregar imagem" << endl;
+        return -1;
+    }
+
+    // Criando uma janela    
+    namedWindow("Minha Window", 1);
+    namedWindow("Minha Window 2", 2);
+
+    //Criando uma track bar para mudar o brilho brightness
+    int iSliderValue1 = 50;
+    createTrackbar("Brilho", "Minha Window", &iSliderValue1, 100);
+
+    //Criando track bar parar mudar o contraste
+    int iSliderValue2 = 50;
+    createTrackbar("Contraste", "Minha Window", &iSliderValue2, 100);
+   
+    while (true)
+    {
+        //Change the brightness and contrast of the image (For more infomation http://opencv-srf.blogspot.com/2013/07/change-contrast-of-image-or-video.html)
+
+        Mat dst;
+        int iBrightness = iSliderValue1 - 50;
+        double dContrast = iSliderValue2 / 50.0;
+        src.convertTo(dst, -1, dContrast, iBrightness);
+
+        //show the brightness and contrast adjusted image
+        imshow("Minha Window", dst);
+        imshow("Minha Window 2", uniao);
 
         
 
-   
+        // Wait until user press some key for 50ms
+        int iKey = waitKey(50);
 
+        //if user press 'ESC' key
+        if (iKey == 27)
+        {
+            break;
+        }
+    }
 
 
 
