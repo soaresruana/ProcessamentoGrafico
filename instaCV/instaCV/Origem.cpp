@@ -1,3 +1,9 @@
+/*
+Processamento Gráfico 
+Autor: Ruana Boeira Soares
+Nome Projeto: InstaCV
+*/
+
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
