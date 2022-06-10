@@ -326,34 +326,30 @@ int main(int argc, char** argv)
         // Leitura de frame - video
         if (iKey == 'V') {
 
-
-            //VideoCapture cap("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4", cv::CAP_ANY);
-            //Create a VideoCapture object and open input video
             VideoCapture videoCapture("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4");
 
-            //Check if input video exists
             if (!videoCapture.isOpened()) {
-                cout << "Error opening video stream or file" << endl;
+                cout << "Erro ao carregar o video" << endl;
                 return -1;
             }
 
             //Create a window to show input video
-            namedWindow("input video", WINDOW_NORMAL);
+            namedWindow("Resident Evil 7", WINDOW_NORMAL);
 
-            //Keep playing video until video is completed
+            
             while (1) {
                 Mat frame;
 
-                //Capture frame by frame
+                
                 videoCapture >> frame;
 
-                //If frame is empty then break the loop
+                
                 if (frame.empty()) {
                     break;
                 }
 
                 //Show the current frame
-                imshow("input video", frame);
+                imshow("Resident Evil 7", frame);
 
                 //ESC parar video
                 char c = (char)waitKey(25);
