@@ -37,8 +37,9 @@ void mouseCallback(int evt, int x, int y, int flags, void* param);
 void interpolation(uchar* lut, float* curve, float* originalValue);
 
 void on_trackbar(int, void*);
-int g_slider; //slider pos value
-int g_slider_max; //slider max value
+int g_slider; //slider video
+int g_slider_max; //slider video
+
 
 
 enum mouseEvents {NONE, LEFTBUTTON_DOWN};
@@ -105,12 +106,7 @@ int main(int argc, char** argv)
     int iSliderValue2 = 50;
     createTrackbar("Contraste", "InstaCV", &iSliderValue2, 100);
 
-    //Criando track bar parar alterar o tamanho
-    /*int iSliderValue2 = 50;
-    createTrackbar("Resize", "InstaCV", &iSliderValue2, 100);*/
-
-   
-
+    
 
     while (true)
 
@@ -119,6 +115,8 @@ int main(int argc, char** argv)
         int iBrightness = iSliderValue1 - 50;
         double dContrast = iSliderValue2 / 50.0;
         imgOriginal.convertTo(imgChange, -1, dContrast, iBrightness);
+
+       
 
         // Redimencionando a imagem
         resize(imgChange, imgChange, Size(), 0.8, 0.8);
@@ -143,11 +141,6 @@ int main(int argc, char** argv)
 
         /*A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,X,W,Y,Z*/
 
-
-        if (iKey == 'A') {
-
-
-        }
 
         //Blur
         if (iKey == 'B') {
@@ -233,24 +226,39 @@ int main(int argc, char** argv)
             }
         }
 
-        //Mouse CallBack
-        if (iKey == 'M') {
-            //cv::setMouseCallback("InstaCV", mouseEvent, &imgOriginal);
-             //converte para 4 canais
-            //
+        //Mouse CallBack - Sticker - charuto
+        if (iKey == 'I') {
 
-            //resize(imgNariz, imgNariz, Size(), 0.2, 0.2);
-
-
-            //cvtColor(imgPikachu, imgPikachuAlpha, COLOR_BGR2BGRA);
-
-            sticker = imread("stickers/narizinho.png", IMREAD_UNCHANGED);
-
+            sticker = imread("stickers/charuto.png", IMREAD_UNCHANGED);
 
             resize(sticker, sticker, Size(), 0.2, 0.2);
             cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
 
+            setMouseCallback("InstaCV", mouseCallback, NULL);
 
+
+        }
+
+        //Mouse CallBack - Sticker - oculos
+        if (iKey == 'J') {
+
+            sticker = imread("stickers/oculos.png", IMREAD_UNCHANGED);
+
+            resize(sticker, sticker, Size(), 0.4, 0.4);
+            cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
+
+            setMouseCallback("InstaCV", mouseCallback, NULL);
+
+
+        }
+
+        //Mouse CallBack - Sticker Nariz
+        if (iKey == 'M') {
+            
+            sticker = imread("stickers/narizinho.png", IMREAD_UNCHANGED);
+
+            resize(sticker, sticker, Size(), 0.2, 0.2);
+            cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
 
             setMouseCallback("InstaCV", mouseCallback, NULL);
 
@@ -270,7 +278,7 @@ int main(int argc, char** argv)
             }
         }
         
-        //Coloca sticker com coordenada via input
+        //Coloca sticker com coordenada via input - NARIZ
         if (iKey == 'R') {
 
             sticker = imread("stickers/narizinho.png");
@@ -297,7 +305,7 @@ int main(int argc, char** argv)
             }
         }
        
-        // Salvar
+        // Salvar Imagem
         if (iKey == 'S') {
                        
 
@@ -326,7 +334,7 @@ int main(int argc, char** argv)
             
         }
 
-        // Leitura de frame - video
+        // Execucao de video manipulacao do trackbar
         if (iKey == 'V') {
 
             VideoCapture videoCapture("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4");
@@ -380,16 +388,7 @@ int main(int argc, char** argv)
             
         }
 
-        // Leitura de frame - video
-        if (iKey == 'W') {
-
-            
-
-
-        }
-
-        
-        
+      
         
         /*Filtros integram*/
 
@@ -751,7 +750,7 @@ int main(int argc, char** argv)
 
         }
 
-        // Green
+        // Green day
         if (iKey == '8') {
 
             Mat output;
@@ -998,15 +997,15 @@ void mouseCallback(int evt, int x, int y, int flags, void* param) {
         //cout << "PONTO X" << mousex - sticker.cols / 2 << endl;
         //cout << "PONTO Y" << mousey - sticker.rows / 2 << endl;
         
-
-        //cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
-        //overlayImage(&imgOriginal, &sticker, Point(x - sticker.cols/2, y - sticker.rows/2));
-        sticker.copyTo(imgOriginal.rowRange(x, x + sticker.cols).colRange(y, y + sticker.rows));
+        cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
+        overlayImage(&imgOriginal, &sticker, Point(x - sticker.cols/2, y - sticker.rows/2));
+        //sticker.copyTo(imgOriginal.rowRange(x, x + sticker.cols).colRange(y, y + sticker.rows));
       
     }
     else {
         if (evt == EVENT_RBUTTONDOWN) { // Quando o botão da direita for clicado
         cout << "Direita clicado, posicao:(" << x << "," << y << ")" << endl;
+
         
         }
         else {
@@ -1078,35 +1077,40 @@ void menu() {
     printf("\n");
     printf("        H - erosao \n");
     printf("\n");
-    printf("        M - mouse callback \n");
+    printf("        I - Mouse CallBack - Sticker - charuto \n");
+    printf("\n");
+    printf("        J - Mouse CallBack - Sticker - oculos \n");
+    printf("\n");
+    printf("        M - Mouse CallBack - Sticker Nariz \n");
     printf("\n");
     printf("        O - Sticker com OverlayImage \n");
     printf("\n");
-    printf("        R - Sticker com Coordenada via input \n");
+    printf("        R - Sticker com Coordenada via input Nariz \n");
     printf("\n");
     printf("        S - Salvar imagem \n");
     printf("\n");
-    printf("        1 - filtro instagram \n");
+    printf("        V - Execucao de video manipulacao do trackbar \n");
     printf("\n");
-    printf("        2 - filtro instagram \n");
+    printf("        0 - Retira o ruido da imagem \n");
     printf("\n");
-    printf("        3 - filtro instagram \n");
+    printf("        1 - Cartoon \n");
     printf("\n");
-    printf("        4 - filtro instagram \n");
+    printf("        2 - Pencil \n");
     printf("\n");
-    printf("        5 - filtro instagram \n");
+    printf("        3 - Paraiso artificial - interpolacao \n");
     printf("\n");
-    printf("        6 - filtro instagram \n");
+    printf("        4 - sun \n");
     printf("\n");
-    printf("        7 - filtro instagram \n");
+    printf("        5 - Fire \n");
     printf("\n");
-    printf("        8 - filtro instagram \n");
+    printf("        6 - Purple \n");
     printf("\n");
-    printf("        9 - filtro instagram \n");
+    printf("        7 - Blue \n");
     printf("\n");
-    printf("        10 - filtro instagram \n");
+    printf("        8 - Green day \n");
     printf("\n");
-    
+    printf("        9 - Ajusta a gramatura da imagem \n");
+    printf("\n");
 
 
 }
