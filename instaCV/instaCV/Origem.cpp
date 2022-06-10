@@ -36,6 +36,9 @@ void mouseCallback(int evt, int x, int y, int flags, void* param);
 
 void interpolation(uchar* lut, float* curve, float* originalValue);
 
+void on_trackbar(int, void*);
+int g_slider; //slider pos value
+int g_slider_max; //slider max value
 
 
 enum mouseEvents {NONE, LEFTBUTTON_DOWN};
@@ -327,29 +330,40 @@ int main(int argc, char** argv)
         if (iKey == 'V') {
 
             VideoCapture videoCapture("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4");
-
+            Mat edges;
+            
             if (!videoCapture.isOpened()) {
                 cout << "Erro ao carregar o video" << endl;
                 return -1;
             }
 
-            //Create a window to show input video
-            namedWindow("Resident Evil 7", WINDOW_NORMAL);
+            //set
+            g_slider = 0;
+            g_slider_max = 255;
+            
+            namedWindow("Whatching Resident Evil 7", WINDOW_NORMAL);
+            createTrackbar("Filter", "Whatching Resident Evil 7", &g_slider, g_slider_max, on_trackbar);
 
             
             while (1) {
+
                 Mat frame;
 
-                
                 videoCapture >> frame;
 
+                cvtColor(frame, edges, COLOR_BGR2GRAY);
+                GaussianBlur(edges, edges, Size(7, 7), 1.5, 1.5);
+                Canny(edges, edges, g_slider, 30, 3);
+                imshow("edges", edges);
+
                 
+
                 if (frame.empty()) {
                     break;
                 }
 
-                //Show the current frame
-                imshow("Resident Evil 7", frame);
+               
+                imshow("Whatching Resident Evil 7", frame);
 
                 //ESC parar video
                 char c = (char)waitKey(25);
@@ -358,12 +372,20 @@ int main(int argc, char** argv)
                 }
             }
 
-            //Close window after input video is completed
+            
             videoCapture.release();
  
 
 
             
+        }
+
+        // Leitura de frame - video
+        if (iKey == 'W') {
+
+            
+
+
         }
 
         
@@ -1025,7 +1047,10 @@ void interpolation(uchar* lut, float* curve, float* originalValue) {
     }
 }
 
-
+void on_trackbar(int, void*)
+{
+    printf("%d\n", g_slider);
+}
 
 /*
 
