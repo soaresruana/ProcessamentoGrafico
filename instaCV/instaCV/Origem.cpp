@@ -8,6 +8,7 @@ Nome Projeto: InstaCV
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/videoio.hpp"
+#include <opencv2/photo.hpp>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -61,7 +62,7 @@ int main(int argc, char** argv)
     */
     
 
-    Mat imgCinza, imgBlur, imgCanny, imgBlurCanny, imgDilate, imgErode;
+    Mat imgCinza, imgBlur, imgCanny, imgBlurCanny, imgDilate, imgErode, imgEdge;
 
     Mat imgCrop, imgReSize, imgScale;
 
@@ -156,18 +157,55 @@ int main(int argc, char** argv)
 
         // Canny
         if (iKey == 'C') {
-
             while (true) {
-                Canny(imgOriginal, imgOriginal, 60, 60 * 3);
+                cvtColor(imgOriginal, imgOriginal, COLOR_BGR2GRAY);
+                Canny(imgOriginal, imgOriginal, 50, 130);
                 break;
             }
 
+        }
+
+        //Sobel
+        if (iKey == 'D') {
+
+            while (true) {
+
+                Mat grad_x, grad_y;
+
+                //16bits
+                Sobel(imgOriginal, grad_x, CV_16S, 1, 0, 1, 1, 0, BORDER_DEFAULT);
+                Sobel(imgOriginal, grad_y, CV_16S, 0, 1, 1, 1, 0, BORDER_DEFAULT);
+
+                Mat abs_grad_x, abs_grad_y;
+
+                //Convertendo para o CV_8U 8bits
+
+                convertScaleAbs(grad_x, abs_grad_x);
+                convertScaleAbs(grad_y, abs_grad_y);
+
+                addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, imgOriginal);
+
+                break;
+            
+            }
         }
 
         //Escrever
         if (iKey == 'E') {
             while (true) {
                 drawText(imgOriginal);
+                break;
+            }
+
+        }
+
+        //Dilatacao
+        if (iKey == 'F') {
+            while (true) {
+
+                Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
+                dilate(imgOriginal, imgOriginal, kernel);
+
                 break;
             }
 
@@ -180,6 +218,15 @@ int main(int argc, char** argv)
                 break;
             }
 
+        }
+
+        //Erosao
+        if (iKey == 'H') {
+            while (true) {
+                Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
+                erode(imgOriginal, imgOriginal, kernel);
+                break;
+            }
         }
 
         //Mouse CallBack
@@ -345,6 +392,40 @@ int main(int argc, char** argv)
 
 
             
+        }
+
+        /*Filtros integram*/
+
+        //Cartoon
+        if (iKey == '1') {
+
+           
+            //Converte para cinza
+            cvtColor(imgOriginal, imgCinza, COLOR_BGR2GRAY);
+            
+
+            ////aplica blur
+            GaussianBlur(imgCinza, imgCinza, Size(5, 5), 0);
+
+            Laplacian(imgCinza, imgEdge, -1, 5);
+            
+            convertScaleAbs(imgEdge, imgEdge);
+
+            //inverte a imagem
+            imgEdge = 255 - imgEdge;
+
+            threshold(imgEdge, imgEdge, 150, 255, THRESH_BINARY);
+
+            Mat edgePreservingImage;
+            edgePreservingFilter(imgOriginal, edgePreservingImage, 2, 50, 0.4);
+
+            //output;
+            imgOriginal = Scalar::all(0);
+
+            cv::bitwise_and(edgePreservingImage, edgePreservingImage, imgOriginal, imgEdge);
+            
+
+
         }
 
       
