@@ -14,6 +14,8 @@ Nome Projeto: InstaCV
 #include <filesystem>
 #include <windows.h>
 #include <ctime>
+#include <time.h>
+
 
 using namespace cv;
 using namespace std;
@@ -22,9 +24,21 @@ unsigned seed = time(0);
 using std::filesystem::directory_iterator;
 
 void drawText(Mat& image);
+
 string carregaImagem();
 
 string carregaImagemStickers();
+
+void overlayImage(Mat* src, Mat* overlay, const Point& location);
+
+void mouseCallback(int evt, int x, int y, int flags, void* param);
+
+enum mouseEvents {NONE, LEFTBUTTON_DOWN};
+int mouseEvent = LEFTBUTTON_DOWN;
+int mousex, mousey;
+Mat imgNariz, imgAlpha;
+Mat imgOriginal, imgChange, sticker;
+
 void menu();
 
 //filtros
@@ -45,7 +59,7 @@ int main(int argc, char** argv)
     imgCrop, imgReSize, imgScale;
 
     */
-    Mat imgOriginal, imgChange, sticker; 
+    
 
     Mat imgCinza, imgBlur, imgCanny, imgBlurCanny, imgDilate, imgErode;
 
@@ -54,11 +68,14 @@ int main(int argc, char** argv)
     // Menu
 
     menu();
-
+    /*Mat menu = imread("img/pikachu.jpg");
+    namedWindow("Menu", WINDOW_AUTOSIZE);
+    imshow("Menu", menu);*/
+   
+        
     //chamada da função para ler a imagem original
     imgOriginal = imread("img/" + carregaImagem());
 
-    
     //Verifica se não tem erros ao ler a imagem
     if (!imgOriginal.data)
     {
@@ -66,9 +83,14 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    
+
     // Criando uma janela    
     namedWindow("InstaCV", WINDOW_AUTOSIZE);
-    
+
+    //Ajustando o tamanho da janela
+    resizeWindow("InstaCV", 1024, 573);
+   
 
     //Criando uma track bar para mudar o brilho brightness
     int iSliderValue1 = 50;
@@ -89,15 +111,21 @@ int main(int argc, char** argv)
 
     {
 
-        
+
+
+
         int iBrightness = iSliderValue1 - 50;
         double dContrast = iSliderValue2 / 50.0;
         imgOriginal.convertTo(imgChange, -1, dContrast, iBrightness);
 
+        // Redimencionando a imagem
+        resize(imgChange, imgChange, Size(), 0.8, 0.8);
+
         //chamada da função para mostrar a imagem com as alterações aplicadas.
         imshow("InstaCV", imgChange);
 
-       
+
+
         /*
         Funções de interação com o usuário via teclado
         27 = esc
@@ -106,14 +134,119 @@ int main(int argc, char** argv)
         */
 
         int iKey = (char)cv::waitKey(10);
-       
-        
+
+
         //ESC
         if (iKey == 27)
         {
             return -1;
         }
-        // SALVAR
+
+        /*A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,X,W,Y,Z*/
+
+        //Blur
+        if (iKey == 'B') {
+         
+            while (true) {
+                GaussianBlur(imgOriginal, imgOriginal, Size(45, 45), 0, 0);
+                break;
+            }
+            
+        }
+
+        // Canny
+        if (iKey == 'C') {
+
+            while (true) {
+                Canny(imgOriginal, imgOriginal, 60, 60 * 3);
+                break;
+            }
+
+        }
+
+        //Escrever
+        if (iKey == 'E') {
+            while (true) {
+                drawText(imgOriginal);
+                break;
+            }
+
+        }
+
+        // Conversão para Grayscale
+        if (iKey == 'G') {
+            while (true) {
+                cvtColor(imgOriginal, imgOriginal, COLOR_BGR2GRAY);
+                break;
+            }
+
+        }
+
+        //Mouse CallBack
+        if (iKey == 'M') {
+            //cv::setMouseCallback("InstaCV", mouseEvent, &imgOriginal);
+             //converte para 4 canais
+            //
+
+            //resize(imgNariz, imgNariz, Size(), 0.2, 0.2);
+
+
+            //cvtColor(imgPikachu, imgPikachuAlpha, COLOR_BGR2BGRA);
+
+            sticker = imread("stickers/narizinho.png", IMREAD_UNCHANGED);
+
+
+            resize(sticker, sticker, Size(), 0.2, 0.2);
+            cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
+
+
+
+            setMouseCallback("InstaCV", mouseCallback, NULL);
+
+
+        }
+
+        // Coloca sticker com overlayImage - ajustar
+        if (iKey == 'O') {
+
+            Mat sticker2 = imread(carregaImagemStickers(), IMREAD_UNCHANGED);
+
+            for (;;) {
+                resize(sticker2, sticker2, Size(), 0.2, 0.2);
+
+                cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA); //converte para 4 canais
+                overlayImage(&imgOriginal, &sticker2, Point(170, 160));
+            }
+        }
+        
+        //Coloca sticker com coordenada via input
+        if (iKey == 'R') {
+
+            sticker = imread("stickers/narizinho.png");
+
+            int x = 0;
+            int y = 0;
+
+            cout << "Digite a coordenada X do ponto: ";
+            cin >> x;
+            cout << "Digite a coordenada Y do ponto: ";
+            cin >> y;
+
+
+            for (;;) {
+
+                // valor inicial, valorinicial + tam da imagem, matriz igual
+                //erro encontrado: aviso libpng: iCCP: perfil sRGB incorreto conhecido
+                //namedWindow("Sticker", WINDOW_AUTOSIZE);
+                //imshow("Sticker", sticker);
+                resize(sticker, sticker, Size(), 0.2, 0.2);
+                //cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
+                sticker.copyTo(imgOriginal.rowRange(x, x + sticker.cols).colRange(y, y + sticker.rows));
+                break;
+            }
+        }
+       
+        // Salvar
         if (iKey == 'S') {
                        
 
@@ -141,36 +274,82 @@ int main(int argc, char** argv)
 
             
         }
-        //ESCREVER
-        if (iKey == 'E') {
-            while (true) {
-                drawText(imgOriginal);   
-                break;
+
+        // Leitura de frame - video
+        if (iKey == 'V') {
+
+
+            VideoCapture cap("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4", cv::CAP_ANY);
+            while (1) {
+                double fps = cap.get(5);
+                cout << "FRAMES PER SECOND USIN CAP.GET(cv::CAP_PROP_FPS) : " << fps << endl;
+
+                int num_frame = cap.get(7);
+
+                time_t start, end;
+
+                Mat frame;
+
+                cout << "capturing " << num_frame << " frames " << endl;
+
+                time(&start);
+
+                for (int i = 0; i < num_frame; i++) {
+                    cap >> frame;
+                    
+                   
+                }
+
+                time(&end);
+
+                double seconds = difftime(end, start);
+
+                cout << "time taken :" << seconds << "seconds" << endl;
+
+                fps = num_frame / seconds;
+                cout << " estimado frames por second : " << fps << endl;
+
+               
+                while (cap.isOpened()) {
+
+                    Mat frame;
+                    cap.read(frame);
+                    imshow("FRAME ", frame);
+
+                    if (frame.empty()) {
+                        break;
+                    }
+                    cap.release();
+
+
+                }
+                    
+                                    
+               
+                
+
+                
+
+
+
+                // cap.read(frame);
+                // cap.open("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4", cv::CAP_FFMPEG);
+               
+                
+
+               
+
+
             }
-                             
-        }
+ 
 
-        if (iKey == 'G') {
-            while (true) {
-                cvtColor(imgOriginal, imgOriginal, COLOR_BGR2GRAY);
-                break;
-            }
 
-        }
-
-        if (iKey == 'R') {
-        
-            // valor inicial, valorinicial + tam da imagem, matriz igual
-            //erro encontrado: aviso libpng: iCCP: perfil sRGB incorreto conhecido
-            sticker = imread("stickers/"+ carregaImagemStickers());
-            //namedWindow("Sticker", WINDOW_AUTOSIZE);
-            //imshow("Sticker", sticker);
-
-            sticker.copyTo(imgOriginal.rowRange(150, 150 + 145).colRange(150, 150 + 145));
             
         }
 
-       
+      
+
+        
 
 
 
@@ -302,6 +481,88 @@ string carregaImagemStickers() {
 
 }
 
+void overlayImage(Mat* src, Mat* overlay, const Point& location)
+{
+    for (int y = max(location.y, 0); y < src->rows; ++y)
+    {
+        int fY = y - location.y;
+       
+        if (fY >= overlay->rows)
+            break;
+        for (int x = max(location.x, 0); x < src->cols; ++x)
+        {
+            int fX = x - location.x;
+            
+            if (fX >= overlay->cols)
+                break;
+            double opacity = ((double)overlay->data[fY * overlay->step + fX * overlay->channels() + 3]) / 255;
+            for (int c = 0; opacity > 0 && c < src->channels(); ++c)
+            {
+                unsigned char overlayPx = overlay->data[fY * overlay->step + fX * overlay->channels() + c];
+                unsigned char srcPx = src->data[y * src->step + x * src->channels() + c];
+                src->data[y * src->step + src->channels() * x + c] = srcPx * (1. - opacity) + overlayPx * opacity;
+            }
+        }
+    }
+}
+
+void mouseCallback(int evt, int x, int y, int flags, void* param) {
+
+    
+
+    if (evt == EVENT_LBUTTONDOWN) { // Quando o botão da esquerda for clicado
+        //sticker = imread("stickers/narizinho.png", IMREAD_UNCHANGED);
+        //resize(sticker, sticker, Size(), 0.4, 0.4);
+
+        cout << "Esquerda clicado, posicao X,Y:(" << x << "," << y << ")" << endl;
+        mouseEvent = LEFTBUTTON_DOWN;
+
+        mousex = x - sticker.cols / 2;
+        //int difx = x - mousex; 
+        //mousex = mousex + difx;
+
+        printf("PONTO VALOR X:  %d", mousex);
+
+        mousey = y - sticker.rows / 2;
+        //int dify = y - mousey ; 
+        //mousey = mousey + dify;
+
+        printf("PONTO VALOR Y:  %d", mousey);
+
+        //cout << "PONTO X" << mousex - sticker.cols / 2 << endl;
+        //cout << "PONTO Y" << mousey - sticker.rows / 2 << endl;
+        
+
+        //cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
+        //overlayImage(&imgOriginal, &sticker, Point(x - sticker.cols/2, y - sticker.rows/2));
+        sticker.copyTo(imgOriginal.rowRange(x, x + sticker.cols).colRange(y, y + sticker.rows));
+      
+    }
+    else {
+        if (evt == EVENT_RBUTTONDOWN) { // Quando o botão da direita for clicado
+        cout << "Direita clicado, posicao:(" << x << "," << y << ")" << endl;
+        
+        }
+        else {
+            if (evt == EVENT_MBUTTONDOWN) { // Quando o botão do meio for clicado
+                cout << "Meio clicado, posicao:(" << x << "," << y << ")" << endl;
+            }
+            else {
+                if (evt == EVENT_MOUSEMOVE) { // Quando o mouse mover
+                    cout << "Movimentacao do mouse na posicao:(" << x << "," << y << ")" << endl;
+                }
+            
+            }
+        }
+    
+    }
+
+
+
+
+
+}
+
 /*
 
 Função de Menu apenas para indicar os comandos disponíveis. 
@@ -314,11 +575,47 @@ void menu() {
     printf("\n");
     printf("        ESC - fechar janela \n");
     printf("\n");
-    printf("        S - salvar imagem \n");
+    printf("        B - Blur (GaussianBlur) \n");
+    printf("\n");
+    printf("        C - detector de bordas Canny \n");
+    printf("\n");
+    printf("        D - detector de bordas Sobel \n");
     printf("\n");
     printf("        E - escrever na imagem \n");
     printf("\n");
-    printf("        G - imagem cinza \n");
+    printf("        F - Dilatacao \n");
+    printf("\n");
+    printf("        G - Grayscale \n");
+    printf("\n");
+    printf("        H - erosao \n");
+    printf("\n");
+    printf("        M - mouse callback \n");
+    printf("\n");
+    printf("        O - Sticker com OverlayImage \n");
+    printf("\n");
+    printf("        R - Sticker com Coordenada via input \n");
+    printf("\n");
+    printf("        S - Salvar imagem \n");
+    printf("\n");
+    printf("        1 - filtro instagram \n");
+    printf("\n");
+    printf("        2 - filtro instagram \n");
+    printf("\n");
+    printf("        3 - filtro instagram \n");
+    printf("\n");
+    printf("        4 - filtro instagram \n");
+    printf("\n");
+    printf("        5 - filtro instagram \n");
+    printf("\n");
+    printf("        6 - filtro instagram \n");
+    printf("\n");
+    printf("        7 - filtro instagram \n");
+    printf("\n");
+    printf("        8 - filtro instagram \n");
+    printf("\n");
+    printf("        9 - filtro instagram \n");
+    printf("\n");
+    printf("        10 - filtro instagram \n");
     printf("\n");
     
 
