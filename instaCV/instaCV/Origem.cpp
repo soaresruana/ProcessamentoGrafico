@@ -34,6 +34,10 @@ void overlayImage(Mat* src, Mat* overlay, const Point& location);
 
 void mouseCallback(int evt, int x, int y, int flags, void* param);
 
+void interpolation(uchar* lut, float* curve, float* originalValue);
+
+
+
 enum mouseEvents {NONE, LEFTBUTTON_DOWN};
 int mouseEvent = LEFTBUTTON_DOWN;
 int mousex, mousey;
@@ -69,10 +73,7 @@ int main(int argc, char** argv)
     // Menu
 
     menu();
-    /*Mat menu = imread("img/pikachu.jpg");
-    namedWindow("Menu", WINDOW_AUTOSIZE);
-    imshow("Menu", menu);*/
-   
+     
         
     //chamada da função para ler a imagem original
     imgOriginal = imread("img/" + carregaImagem());
@@ -112,9 +113,6 @@ int main(int argc, char** argv)
 
     {
 
-
-
-
         int iBrightness = iSliderValue1 - 50;
         double dContrast = iSliderValue2 / 50.0;
         imgOriginal.convertTo(imgChange, -1, dContrast, iBrightness);
@@ -129,9 +127,6 @@ int main(int argc, char** argv)
 
         /*
         Funções de interação com o usuário via teclado
-        27 = esc
-        s = salvar imagem no diretório atual de imagens.
-
         */
 
         int iKey = (char)cv::waitKey(10);
@@ -144,6 +139,12 @@ int main(int argc, char** argv)
         }
 
         /*A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,X,W,Y,Z*/
+
+
+        if (iKey == 'A') {
+
+
+        }
 
         //Blur
         if (iKey == 'B') {
@@ -326,75 +327,70 @@ int main(int argc, char** argv)
         if (iKey == 'V') {
 
 
-            VideoCapture cap("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4", cv::CAP_ANY);
+            //VideoCapture cap("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4", cv::CAP_ANY);
+            //Create a VideoCapture object and open input video
+            VideoCapture videoCapture("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4");
+
+            //Check if input video exists
+            if (!videoCapture.isOpened()) {
+                cout << "Error opening video stream or file" << endl;
+                return -1;
+            }
+
+            //Create a window to show input video
+            namedWindow("input video", WINDOW_NORMAL);
+
+            //Keep playing video until video is completed
             while (1) {
-                double fps = cap.get(5);
-                cout << "FRAMES PER SECOND USIN CAP.GET(cv::CAP_PROP_FPS) : " << fps << endl;
-
-                int num_frame = cap.get(7);
-
-                time_t start, end;
-
                 Mat frame;
 
-                cout << "capturing " << num_frame << " frames " << endl;
+                //Capture frame by frame
+                videoCapture >> frame;
 
-                time(&start);
-
-                for (int i = 0; i < num_frame; i++) {
-                    cap >> frame;
-                    
-                   
+                //If frame is empty then break the loop
+                if (frame.empty()) {
+                    break;
                 }
 
-                time(&end);
+                //Show the current frame
+                imshow("input video", frame);
 
-                double seconds = difftime(end, start);
-
-                cout << "time taken :" << seconds << "seconds" << endl;
-
-                fps = num_frame / seconds;
-                cout << " estimado frames por second : " << fps << endl;
-
-               
-                while (cap.isOpened()) {
-
-                    Mat frame;
-                    cap.read(frame);
-                    imshow("FRAME ", frame);
-
-                    if (frame.empty()) {
-                        break;
-                    }
-                    cap.release();
-
-
+                //ESC parar video
+                char c = (char)waitKey(25);
+                if (c == 27) {
+                    break;
                 }
-                    
-                                    
-               
-                
-
-                
-
-
-
-                // cap.read(frame);
-                // cap.open("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4", cv::CAP_FFMPEG);
-               
-                
-
-               
-
-
             }
+
+            //Close window after input video is completed
+            videoCapture.release();
  
 
 
             
         }
 
+        
+        
+        
         /*Filtros integram*/
+
+        //Retira o ruido da imagem
+        if (iKey == '0') {
+
+            Mat output;
+
+            int kernelSize = 5;
+
+            Mat kernel = Mat::ones(kernelSize, kernelSize, CV_32F);
+            kernel = kernel / (float)(kernelSize * kernelSize);
+
+            filter2D(imgOriginal, output, -1, kernel, Point(-1, -1), 0, BORDER_DEFAULT);
+
+            imgOriginal = output;
+
+
+        }
 
         //Cartoon
         if (iKey == '1') {
@@ -428,15 +424,386 @@ int main(int argc, char** argv)
 
         }
 
-      
-
+        //Pencil
+        if (iKey == '2') {
         
+            cvtColor(imgOriginal, imgCinza, COLOR_BGR2GRAY);
 
+            Mat grayImageInv = 255 - imgCinza;
 
+            GaussianBlur(grayImageInv, grayImageInv, Size(21, 21), 0);
 
+            divide(imgCinza, 255 - grayImageInv, imgOriginal, 256.0);
         
+        
+        }
+
+        //Paraiso artificial - interpolacao
+        if (iKey == '3') {
+
+            //cria uma cópia da imagem original
+            Mat output = imgOriginal.clone();
+
+            // Calcula o tamanho do kernel e pega os efeitos, normaliza
+
+            float vignetteScale = 6;
             
+            int k = min(output.rows, output.cols) / vignetteScale;
+            
+            Mat kernelX = getGaussianKernel(output.cols, k);
+            Mat kernelY = getGaussianKernel(output.rows, k);
+            Mat kernelx_transpose;
+            transpose(kernelX, kernelx_transpose);
+            Mat kernel = kernelY * kernelx_transpose;
+            //cout << kernel.size() << endl;
 
+            Mat mask;
+            normalize(kernel, mask, 0, 1, NORM_MINMAX);
+
+            //convert para float 32
+            output.convertTo(output, CV_32F);
+            mask.convertTo(mask, CV_32F);
+
+            // faz split e aplicanos 3 canais.
+            vector<Mat> channels;
+            split(output, channels);
+
+
+            channels[0] = channels[0] + channels[0].mul(mask);
+            channels[1] = channels[1] + channels[1].mul(mask);
+            channels[2] = channels[2] + channels[2].mul(mask);
+
+            //mistura os canais
+            merge(channels, output);
+
+            output = output / 2;
+
+            //limites de pixels
+            min(output.cols, 255, output.rows);
+            max(output.cols, 0, output.rows);
+
+            output.convertTo(output, CV_8UC3);
+
+            split(output, channels);
+
+            // interpola os valores
+            float redValuesOriginal[] = { 0, 42, 105, 148, 185, 255 };
+            float redValues[] = { 0, 28, 100, 300, 215, 255 };
+            float greenValuesOriginal[] = { 0, 40, 85, 300, 165, 212, 255 };
+            float greenValues[] = { 0, 25, 75, 135, 185, 230, 255 };
+            float blueValuesOriginal[] = { 0, 40, 82, 125, 300, 225, 255 };
+            float blueValues[] = { 0, 38, 90, 125, 160, 210, 222 };
+
+            Mat lookupTable(1, 256, CV_8U);
+            uchar* lut = lookupTable.ptr();
+
+            // aplica a interpolacao e cria looup no canal vermelho, verde e azul
+            interpolation(lut, redValues, redValuesOriginal);
+           
+            // aplica o mapa para cor vermelha, verde e azul
+            LUT(channels[2], lookupTable, channels[2]);
+
+            interpolation(lut, greenValues, greenValuesOriginal);
+
+            LUT(channels[1], lookupTable, channels[1]);
+
+            interpolation(lut, blueValues, blueValuesOriginal);
+
+            LUT(channels[0], lookupTable, channels[0]);
+
+            //mistura os canais
+            merge(channels, output);
+
+            // ajustes
+            cvtColor(output, output, COLOR_BGR2YCrCb);
+
+            //converte pra float32
+            output.convertTo(output, CV_32F);
+
+            //split dos canais
+            split(output, channels);
+
+            //Scale canal Y
+            channels[0] = channels[0] * 1.2;
+
+            //limite de pixel 0 e 255
+            min(channels[0].cols, 255, channels[0].rows);
+            max(channels[0].cols, 0, channels[0].rows);
+
+            //mistura os canais
+            merge(channels, output);
+
+            //converte para cv_8uc3
+            output.convertTo(output, CV_8UC3);
+
+            //converte para BGR 
+            cvtColor(output, output, COLOR_YCrCb2BGR);
+
+            imgOriginal = output;
+           
+        
+        }
+
+        // sun
+        if (iKey == '4') {
+
+            Mat output;
+                       
+            output = imgOriginal.clone();
+
+           
+            vector<Mat> channels;
+            split(output, channels);
+
+            
+            float redValuesOriginal[] = { 0, 60, 110, 150, 235, 255 };
+            float redValues[] = { 0, 102, 185, 220, 245, 245 };
+            float greenValuesOriginal[] = { 0, 68, 105, 190, 255 };
+            float greenValues[] = { 0, 68, 120, 220, 255 };
+            float blueValuesOriginal[] = { 0, 88, 145, 185, 255 };
+            float blueValues[] = { 0, 12, 140, 212, 255 };
+
+           
+            Mat lookupTable(1, 256, CV_8U);
+            uchar* lut = lookupTable.ptr();
+
+           
+            interpolation(lut, blueValues, blueValuesOriginal);
+           
+            LUT(channels[0], lookupTable, channels[0]);
+
+            
+            interpolation(lut, greenValues, greenValuesOriginal);
+           
+            LUT(channels[1], lookupTable, channels[1]);
+
+          
+            interpolation(lut, redValues, redValuesOriginal);
+           
+            LUT(channels[2], lookupTable, channels[2]);
+
+           
+            merge(channels, output);
+
+            imgOriginal = output;
+        
+        }
+
+        // Fire
+        if (iKey == '5') {
+
+            Mat output;
+
+            output = imgOriginal.clone();
+
+
+            vector<Mat> channels;
+            split(output, channels);
+
+                    
+            float redValuesOriginal[] = { 0, 60, 110, 150, 235, 255 };
+            float redValues[] = { 0, 255, 245, 235, 225, 200 };
+            
+            float greenValuesOriginal[] = { 0, 68, 105, 190, 255 };
+            float greenValues[] = { 0, 58, 100, 200, 230 };
+
+            float blueValuesOriginal[] = { 0, 88, 145, 185, 255 };
+            float blueValues[] = { 0, 10, 120, 200, 245 };
+
+
+            Mat lookupTable(1, 256, CV_8U);
+            uchar* lut = lookupTable.ptr();
+
+
+            interpolation(lut, blueValues, blueValuesOriginal);
+
+            LUT(channels[0], lookupTable, channels[0]);
+
+
+            interpolation(lut, greenValues, greenValuesOriginal);
+
+            LUT(channels[1], lookupTable, channels[1]);
+
+
+            interpolation(lut, redValues, redValuesOriginal);
+
+            LUT(channels[2], lookupTable, channels[2]);
+
+
+            merge(channels, output);
+
+            imgOriginal = output;
+        
+        
+        }
+
+        // Purple
+        if (iKey == '6') {
+
+            Mat output;
+
+            output = imgOriginal.clone();
+
+
+            vector<Mat> channels;
+            split(output, channels);
+
+
+            float redValuesOriginal[] = { 0, 60, 110, 150, 235, 255 };
+            float redValues[] = { 0, 102, 185, 220, 245, 245 };
+
+            float greenValuesOriginal[] = { 0, 68, 105, 190, 255 };
+            float greenValues[] = { 0, 58, 100, 200, 230 };
+
+            float blueValuesOriginal[] = { 0, 88, 145, 185, 255 };
+            float blueValues[] = { 0, 255, 245, 235, 225, 200 };
+
+
+            Mat lookupTable(1, 256, CV_8U);
+            uchar* lut = lookupTable.ptr();
+
+
+            interpolation(lut, blueValues, blueValuesOriginal);
+
+            LUT(channels[0], lookupTable, channels[0]);
+
+
+            interpolation(lut, greenValues, greenValuesOriginal);
+
+            LUT(channels[1], lookupTable, channels[1]);
+
+
+            interpolation(lut, redValues, redValuesOriginal);
+
+            LUT(channels[2], lookupTable, channels[2]);
+
+
+            merge(channels, output);
+
+            imgOriginal = output;
+
+
+        }
+
+        // Blue
+        if (iKey == '7') {
+
+            Mat output;
+
+            output = imgOriginal.clone();
+
+
+            vector<Mat> channels;
+            split(output, channels);
+
+
+            float redValuesOriginal[] = { 0, 60, 110, 150, 235, 255 };
+            float redValues[] = { 0, 58, 50, 100, 115 };
+
+            float greenValuesOriginal[] = { 0, 68, 105, 190, 255 };
+            float greenValues[] = { 0, 58, 50, 100, 115 };
+
+            float blueValuesOriginal[] = { 0, 88, 145, 185, 255 };
+            float blueValues[] = { 0, 255, 255, 255, 255, 255 };
+
+
+            Mat lookupTable(1, 256, CV_8U);
+            uchar* lut = lookupTable.ptr();
+
+
+            interpolation(lut, blueValues, blueValuesOriginal);
+
+            LUT(channels[0], lookupTable, channels[0]);
+
+
+            interpolation(lut, greenValues, greenValuesOriginal);
+
+            LUT(channels[1], lookupTable, channels[1]);
+
+
+            interpolation(lut, redValues, redValuesOriginal);
+
+            LUT(channels[2], lookupTable, channels[2]);
+
+
+            merge(channels, output);
+
+            imgOriginal = output;
+
+
+        }
+
+        // Green
+        if (iKey == '8') {
+
+            Mat output;
+
+            output = imgOriginal.clone();
+
+
+            vector<Mat> channels;
+            split(output, channels);
+
+
+            float redValuesOriginal[] = { 0, 60, 110, 150, 235, 255 };
+            float redValues[] = { 0, 58, 50, 100, 115 };
+
+            float greenValuesOriginal[] = { 0, 68, 105, 190, 255 };
+            float greenValues[] = { 0, 58, 100, 200, 230 };
+
+            float blueValuesOriginal[] = { 0, 88, 145, 185, 255 };
+            float blueValues[] = { 0, 10, 120, 200, 245 };
+
+
+            Mat lookupTable(1, 256, CV_8U);
+            uchar* lut = lookupTable.ptr();
+
+
+            interpolation(lut, blueValues, blueValuesOriginal);
+
+            LUT(channels[0], lookupTable, channels[0]);
+
+
+            interpolation(lut, greenValues, greenValuesOriginal);
+
+            LUT(channels[1], lookupTable, channels[1]);
+
+
+            interpolation(lut, redValues, redValuesOriginal);
+
+            LUT(channels[2], lookupTable, channels[2]);
+
+
+            merge(channels, output);
+
+            imgOriginal = output;
+
+
+        }
+
+        // Ajusta a gramatura da imagem
+        if (iKey == '9') {
+
+            Mat output;
+
+            //define gamma
+            float gamma = 1.5;
+
+            Mat lookupTable(1, 256, CV_8U);
+            uchar* lut = lookupTable.ptr();
+            for (int i = 0; i < 256; i++) {
+                lut[i] = int(255 * (pow((float)i / 255.0, gamma)));
+            }
+            cout << lookupTable << endl;
+                        
+            LUT(imgOriginal, lookupTable, output);
+
+            imgOriginal = output;
+
+
+        }
+        
+      
         
     }
 
@@ -643,6 +1010,26 @@ void mouseCallback(int evt, int x, int y, int flags, void* param) {
 
 
 }
+
+//interpolation
+void interpolation(uchar* lut, float* curve, float* originalValue) {
+    for (int i = 0; i < 256; i++) {
+        int j = 0;
+        float a = i;
+        while (a > originalValue[j]) {
+            j++;
+        }
+        if (a == originalValue[j]) {
+            lut[i] = curve[j];
+            continue;
+        }
+        float slope = ((float)(curve[j] - curve[j - 1])) / ((float)(originalValue[j] - originalValue[j - 1]));
+        float constant = curve[j] - slope * originalValue[j];
+        lut[i] = slope * a + constant;
+    }
+}
+
+
 
 /*
 
