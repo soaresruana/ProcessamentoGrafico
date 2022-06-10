@@ -45,34 +45,16 @@ int g_slider_max; //slider video
 enum mouseEvents {NONE, LEFTBUTTON_DOWN};
 int mouseEvent = LEFTBUTTON_DOWN;
 int mousex, mousey;
-Mat imgNariz, imgAlpha;
-Mat imgOriginal, imgChange, sticker;
+Mat imgOriginal, imgCinza, imgEdge, imgChange, sticker;
+//Mat imgCrop, imgReSize, imgScale;
 
 void menu();
 
-//filtros
 
 
 int main(int argc, char** argv)
 {
-      
-    /*
-    Criação das estruturas do OpenCV, mat4.
-    imgOriginal = imagem original do diretório.
-    imgChange = imagem alterado pelos filtros.
-
-    Filtros:
-    imgCinza, imgBlur, imgCanny, imgBlurCanny, imgDilate, imgErode
     
-    Recortes/geral:
-    imgCrop, imgReSize, imgScale;
-
-    */
-    
-
-    Mat imgCinza, imgBlur, imgCanny, imgBlurCanny, imgDilate, imgErode, imgEdge;
-
-    Mat imgCrop, imgReSize, imgScale;
 
     // Menu
 
@@ -139,8 +121,7 @@ int main(int argc, char** argv)
             return -1;
         }
 
-        /*A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,X,W,Y,Z*/
-
+       
 
         //Blur
         if (iKey == 'B') {
@@ -385,6 +366,23 @@ int main(int argc, char** argv)
  
 
 
+            
+        }
+
+        //Uniao de duas imagens
+        if (iKey == 'W') {
+
+            // Leitura da imagem original
+            //"img/" + carregaImagem()
+            Mat src = imread("img/" + carregaImagem());
+            Mat dois = imread("img/" + carregaImagem());
+            resize(src, src, Size(400,400), 0.5, 0.5);
+            resize(dois, dois, Size(400,400), 0.5, 0.5);
+            Mat uniao;
+
+            /*União de duas imagens na mesma janela.*/
+            cv::hconcat(src, dois, uniao);
+            imgOriginal = uniao;
             
         }
 
@@ -1028,7 +1026,7 @@ void mouseCallback(int evt, int x, int y, int flags, void* param) {
 
 }
 
-//interpolation
+
 void interpolation(uchar* lut, float* curve, float* originalValue) {
     for (int i = 0; i < 256; i++) {
         int j = 0;
