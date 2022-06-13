@@ -1,7 +1,12 @@
 /*
+
 Processamento Gráfico
 Autor: Ruana Boeira Soares
+Processamento Gráfico.
+
 Nome Projeto: InstaCV
+13/06/2022
+
 */
 
 #include "opencv2/core.hpp"
@@ -46,7 +51,6 @@ enum mouseEvents {NONE, LEFTBUTTON_DOWN};
 int mouseEvent = LEFTBUTTON_DOWN;
 int mousex, mousey;
 Mat imgOriginal, imgCinza, imgEdge, imgChange, sticker;
-//Mat imgCrop, imgReSize, imgScale;
 
 void menu();
 
@@ -70,14 +74,14 @@ int main(int argc, char** argv)
         cout << "Erro ao carregar imagem" << endl;
         return -1;
     }
-
-    
+    //Ajusta o tamanho da imagem original
+    resize(imgOriginal, imgOriginal, Size(1024, 700), 1.0, 1.0);
 
     // Criando uma janela    
     namedWindow("InstaCV", WINDOW_AUTOSIZE);
 
     //Ajustando o tamanho da janela
-    resizeWindow("InstaCV", 1024, 573);
+    resizeWindow("InstaCV", 800, 573);
    
 
     //Criando uma track bar para mudar o brilho brightness
@@ -212,7 +216,7 @@ int main(int argc, char** argv)
 
             sticker = imread("stickers/charuto.png", IMREAD_UNCHANGED);
 
-            resize(sticker, sticker, Size(), 0.2, 0.2);
+            resize(sticker, sticker, Size(), 0.1, 0.1);
             cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA);
 
             setMouseCallback("InstaCV", mouseCallback, NULL);
@@ -246,17 +250,25 @@ int main(int argc, char** argv)
 
         }
 
-        // Coloca sticker com overlayImage - ajustar
+        // Coloca sticker com overlayImage - coordenadas via teclado
         if (iKey == 'O') {
 
-            Mat sticker2 = imread(carregaImagemStickers(), IMREAD_UNCHANGED);
+            Mat sticker2 = imread("stickers/" + carregaImagemStickers(), IMREAD_UNCHANGED);
 
-            for (;;) {
+            
                 resize(sticker2, sticker2, Size(), 0.2, 0.2);
 
                 cvtColor(imgOriginal, imgOriginal, COLOR_BGR2BGRA); //converte para 4 canais
-                overlayImage(&imgOriginal, &sticker2, Point(170, 160));
-            }
+                   
+                    int x, y;
+
+                    cout << "Valor da coordenada x: ";
+                    cin >> x;
+                    cout << "valor da coordenada y: ";
+                    cin >> y;
+
+                overlayImage(&imgOriginal, &sticker2, Point(x, y));
+                
         }
         
         //Coloca sticker com coordenada via input - NARIZ
@@ -334,6 +346,8 @@ int main(int argc, char** argv)
             createTrackbar("Filter", "Whatching Resident Evil 7", &g_slider, g_slider_max, on_trackbar);
 
             
+
+            
             while (1) {
 
                 Mat frame;
@@ -367,6 +381,50 @@ int main(int argc, char** argv)
 
 
             
+        }
+
+        // Salvando um Frame
+        if (iKey == 'X') {
+            
+
+            VideoCapture videoCapture("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/resident7.mp4");
+           
+
+            if (!videoCapture.isOpened()) {
+                cout << "Erro ao carregar o video" << endl;
+                return -1;
+            }
+
+            int frame_width = int(videoCapture.get(3));
+            int frame_height = int(videoCapture.get(4));
+
+            int size = (frame_width, frame_height);
+
+            string text;
+
+            cout << "Digite o nome para salvar: ";
+            cin >> text;
+
+            VideoWriter video("/Users/ruanabs/Desktop/Ruana/ProcessamentoGrafico/GB/ProcessamentoGrafico/instaCV/instaCV/video/"+ text + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 10, Size(frame_width, frame_height));
+            
+           
+            while (true) {
+
+                Mat frame;
+
+                videoCapture >> frame;
+
+                               
+                if (frame.empty()) {
+                    break;
+                }
+
+                video.write(frame);
+
+
+            }
+
+
         }
 
         //Uniao de duas imagens
@@ -453,7 +511,7 @@ int main(int argc, char** argv)
         
         }
 
-        //Paraiso artificial - interpolacao
+        //Paraiso artificial
         if (iKey == '3') {
 
             //cria uma cópia da imagem original
@@ -830,12 +888,6 @@ int main(int argc, char** argv)
     
 
 
-
-
-
-
-
-
     /*
      Abertura da camera
     VideoCapture capture;
@@ -872,10 +924,28 @@ int main(int argc, char** argv)
 }
 
 
-
 /*
-    Função Draw Text , escreve na imagem.
+
+Funções:
+
+- drawText definida para inserir um texto na imagem via teclado.
+
+- carregaImagem e carregaImagemStickers definidas para carregar uma imagem via console.
+Variável path do tipo string contém o caminho do diretório de imagens,
+com iteração para listar o nome das imagens disponíveis.
+
+- OverlayImage definida para percorrer todos os pixel do sticker e colar na imagem.
+
+- mouseCallback definida para mapear e inserir sticker na imagem com overlayImage.
+
+- Interpolacao definida para alterar os canais de cores da imagem dentro dos limites.
+
+- on_tackbar definida para aplicação do video.
+
+- Menu de opções para guia de usuário.
+
 */
+
 void drawText(Mat& image)
 {
     string text;
@@ -884,20 +954,13 @@ void drawText(Mat& image)
 
     putText(image, text,
         Point(20, 50),
-        FONT_HERSHEY_COMPLEX, 1, // font face and scale
-        Scalar(0, 0, 0), // white 255 255 255 black 0 0 0 
-        1, LINE_AA); // line thickness and type
+        FONT_HERSHEY_COMPLEX, 1, 
+        Scalar(0, 0, 0), 
+        1, LINE_AA); 
 
     
 }
 
-/* 
-
-Função definida para carregar uma imagem via console.
-Variável path do tipo string contém o caminho do diretório de imagens, 
-com iteração para listar o nome das imagens disponíveis. 
-
-*/
 string carregaImagem() {
 
     string imgName;
@@ -919,8 +982,6 @@ string carregaImagem() {
     return imgName;
 
 }
-
-
 
 string carregaImagemStickers() {
 
@@ -1026,7 +1087,6 @@ void mouseCallback(int evt, int x, int y, int flags, void* param) {
 
 }
 
-
 void interpolation(uchar* lut, float* curve, float* originalValue) {
     for (int i = 0; i < 256; i++) {
         int j = 0;
@@ -1081,13 +1141,15 @@ void menu() {
     printf("\n");
     printf("        M - Mouse CallBack - Sticker Nariz \n");
     printf("\n");
-    printf("        O - Sticker com OverlayImage \n");
+    printf("        O - Sticker com OverlayImage e coordenadas via teclado \n");
     printf("\n");
     printf("        R - Sticker com Coordenada via input Nariz \n");
     printf("\n");
     printf("        S - Salvar imagem \n");
     printf("\n");
-    printf("        V - Execucao de video manipulacao do trackbar \n");
+    printf("        V - Execucao de video e manipulacao do trackbar \n");
+    printf("\n");
+    printf("        X - Salvando um frame \n");
     printf("\n");
     printf("        0 - Retira o ruido da imagem \n");
     printf("\n");
