@@ -5,7 +5,7 @@ Aplicativo com OpenCV para criar efeitos em imagens e video.
 
 - Escolha uma imagem para começar aplicando os filtros conforme o menu.
 
-- Input via teclado (letras maiusculas) e números de 0 - 9.
+- Input via teclado (letras maiúsculas) e números de 0 - 9.
 
 
             *****MENU***** 
